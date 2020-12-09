@@ -84,10 +84,10 @@ async def fetch_one_ticker(session: aiohttp.ClientSession,
     d = delta * 1000
     queries_str = [
         f"{base_url}{ticker}&interval={periods}&limit=1000&startTime={int((date_from + df * d).timestamp() * 1000)}\
-&endTime={int((date_from + (df + 1) * d).timestamp() * 1000000)}"
+&endTime={int((date_from + (df + 1) * d).timestamp() * 1000)}"
         for df in range(queries_count)]
     queries = await asyncio.gather(*[fetch(session, query) for query in queries_str])
-    candles = [BinanceCandle(c[0], float(c[4]), float(c[5])) for q in queries for c in q]
+    candles = [BinanceCandle(c[6], float(c[4]), float(c[7])) for q in queries for c in q]
     candles = exclude_duplicates(candles)
     for c1, c2 in zip(candles[:-1], candles[1:]):
         assert c1.close_time < c2.close_time
@@ -109,4 +109,5 @@ async def fetch_many_tickers(session: aiohttp.ClientSession,
     delta = get_duration_period(periods)
     candles = await asyncio.gather(*[fetch_one_ticker(session, ticker, data_points, delta, periods)
                                      for ticker in tickers])
+    candles = match_datasets(candles)
     return dict([(ticker, candle_list) for ticker, candle_list in zip(tickers, candles)])
