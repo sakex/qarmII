@@ -5,7 +5,8 @@ import asyncio
 import numpy as np
 
 from data_service.fetch_binance import fetch_many_tickers
-from market_portfolio import EqualyWeightedPortfolio
+from market_portfolio import EqualyWeightedPortfolio, WeightedPortfolio, MeanVariancePortfolio
+from min_delta import minimize_beta, betting_on_beta
 from src.data_service.binance_candle import BinanceCandle
 
 TICKERS = ["BTC", "ETH", "XRP", "LTC", "LINK", "QTUM", "ICX",
@@ -18,11 +19,16 @@ TICKERS = ["BTC", "ETH", "XRP", "LTC", "LINK", "QTUM", "ICX",
 async def main():
     async with aiohttp.ClientSession() as session:
         pairs: List[str] = [f"{t}USDT" for t in TICKERS]
-        candles: Dict[str, List[BinanceCandle]] = await fetch_many_tickers(session, pairs, 10, "1h")
+        candles: Dict[str, List[BinanceCandle]] = await fetch_many_tickers(session, pairs, 15, "1h")
         price_matrix: np.ndarray = np.array([[candle.close for candle in row] for row in candles.values()], dtype=float)
-        return_matrix = np.diff(np.log(price_matrix))
-        equaly_weighted = EqualyWeightedPortfolio(return_matrix)
-        print(equaly_weighted.returns())
+        betting_on_beta(price_matrix)
+        equaly_weighted = EqualyWeightedPortfolio(price_matrix)
+        mean_variance = MeanVariancePortfolio(price_matrix)
+        weights = minimize_beta(price_matrix)
+        weight_portfolio = WeightedPortfolio(price_matrix, weights)
+        print(mean_variance.portfolio_value())
+        print(weight_portfolio.portfolio_value())
+        print(equaly_weighted.portfolio_value())
 
 
 if __name__ == '__main__':
