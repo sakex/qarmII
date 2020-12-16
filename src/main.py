@@ -22,13 +22,11 @@ async def main():
         candles: Dict[str, List[BinanceCandle]] = await fetch_many_tickers(session, pairs, 15, "1h")
         price_matrix: np.ndarray = np.array([[candle.close for candle in row] for row in candles.values()], dtype=float)
         betting_on_beta(price_matrix)
-        equaly_weighted = EqualyWeightedPortfolio(price_matrix)
-        mean_variance = MeanVariancePortfolio(price_matrix)
         weights = minimize_beta(price_matrix)
-        weight_portfolio = WeightedPortfolio(price_matrix, weights)
-        print(mean_variance.portfolio_value())
-        print(weight_portfolio.portfolio_value())
-        print(equaly_weighted.portfolio_value())
+        weight_portfolio = WeightedPortfolio(price_matrix, (weights / np.sum(weights) * .999))
+        print("Weighted portfolio", weight_portfolio.portfolio_value())
+        print("Variance", weight_portfolio.variance())
+        print("Sharpe ratio", weight_portfolio.sharpe_ratio())
 
 
 if __name__ == '__main__':

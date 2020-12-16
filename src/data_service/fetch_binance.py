@@ -52,7 +52,7 @@ def exclude_duplicates(candles: List[BinanceCandle]) -> List[BinanceCandle]:
     return remaining
 
 
-def match_datasets(datasets: List[List[BinanceCandle]]) -> List[List[BinanceCandle]]:
+def match_datasets(datasets) -> List[List[BinanceCandle]]:
     """
     Match de datasets and remove any candle that is not present in all the datasets
     :param datasets: List of datasets to match
