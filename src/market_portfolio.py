@@ -29,11 +29,11 @@ class MarketPortfolio(ABC):
     def prices_normalized(self) -> np.ndarray:
         return self._prices
 
-    def variance(self) -> float:
-        return np.std(self.__returns) ** 2
+    def volatility(self) -> float:
+        return np.sqrt(365 * 24) * np.std(self.__returns)
 
     def sharpe_ratio(self):
-        return np.mean(self.__returns) / np.std(self.__returns)
+        return np.mean(self.__returns) * 365 * 24 / self.volatility()
 
     @abstractmethod
     def generate_portfolio(self) -> np.ndarray:
