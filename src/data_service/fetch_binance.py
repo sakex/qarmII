@@ -1,3 +1,8 @@
+__author__ = "Alexandre Senges"
+__copyright__ = "Copyright (C) 2020 Author Name"
+__license__ = "Public Domain"
+__version__ = "1.0"
+
 import asyncio
 import aiohttp
 from typing import List, Dict, Set
@@ -80,14 +85,14 @@ async def fetch_one_ticker(session: aiohttp.ClientSession,
     """
     now = datetime.now()
     base_url = "https://api.binance.com/api/v3/klines?symbol="
-    date_from = now - delta * queries_count * 1000
-    d = delta * 1000
+    d = delta * 998
     queries_str = [
-        f"{base_url}{ticker}&interval={periods}&limit=1000&startTime={int((date_from + df * d).timestamp() * 1000)}\
-&endTime={int((date_from + (df + 1) * d).timestamp() * 1000)}"
-        for df in range(queries_count)]
+        f"{base_url}{ticker}&interval={periods}&limit=1000&startTime={int((now - d * i).timestamp() * 1000)}\
+&endTime={int((now - d * i + delta * 1000).timestamp() * 1000)}"
+        for i in range(1, queries_count + 1)]
     queries = await asyncio.gather(*[fetch(session, query) for query in queries_str])
-    candles = [BinanceCandle(c[6], float(c[4]), float(c[7])) for q in queries for c in q]
+    candles = [BinanceCandle(c[6], float(c[4]), float(c[7])) for q in queries[::-1] for c in q]
+    candles.sort(key=lambda c: c.close_time)
     candles = exclude_duplicates(candles)
     for c1, c2 in zip(candles[:-1], candles[1:]):
         assert c1.close_time < c2.close_time

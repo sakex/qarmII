@@ -1,3 +1,8 @@
+__author__ = "Alexandre Senges"
+__copyright__ = "Copyright (C) 2020 Author Name"
+__license__ = "Public Domain"
+__version__ = "1.0"
+
 import json
 from typing import List
 
@@ -108,6 +113,15 @@ def max_dd(prices: np.ndarray) -> float:
         elif (price - current_max) / current_max < dd:
             dd = (price - current_max) / current_max
     return dd
+
+
+def print_betas(price_matrix: np.ndarray):
+    equaly_weighted = MeanVariancePortfolio(price_matrix)
+    returns = np.diff(price_matrix) / price_matrix[:, :-1]
+    market_returns = equaly_weighted.returns()
+
+    betas = [np.corrcoef(r, market_returns)[0, 1] for r in returns]
+    print(min(betas), max(betas))
 
 
 def show_stats(kept_indices: List[int], price_matrix: np.ndarray, optimized_weights: np.ndarray,
